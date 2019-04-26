@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<!-- 环境变量 -->
+	<bean id="context" class="nc.vo.uif2.LoginContext">
+		<!-- 组织及档案 -->
+		<property name="nodeType">
+			<value>ORG_NODE</value>
+		</property>
+	</bean>
+	<!-- 模板容器，负责对模板的统一装载 -->
+	<bean id="templateContainer" class="nc.ui.uif2.editor.TemplateContainer">
+		<property name="context" ref="context" />
+	</bean>
+
+	<!-- 组织面板 -->
+	<bean id="orgPanel" class="nc.ui.pm.orgpanel.BDOrgPanel" init-method="initUI">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="dataManager" ref="modelDataManager" />
+	</bean>
+
+	<!-- 对象转换器工厂，由此获取操作对象的特征信息 -->
+	<bean id="boadatorfactory" class="nc.vo.bd.meta.BDObjectAdpaterFactory" />
+
+	<!-- 应用服务类，负责进行模型操作的处理 -->
+	<bean id="batchModelService"
+		class="nc.ui.pmbd.bd.pressuregrade.model.PressureGradeModelService" />
+
+	<!-- 批量操作应用模型 nc.ui.am.model.BatchTableModel -->
+	<bean id="batchBillTableModel" class="nc.ui.uif2.model.BatchBillTableModel">
+		<property name="service" ref="batchModelService"></property>
+		<property name="businessObjectAdapterFactory" ref="boadatorfactory"></property>
+		<property name="context" ref="context"></property>
+		<property name="validationService" ref="validationService"></property>
+	</bean>
+	<!-- 列表控件 -->
+	<bean id="list" class="nc.ui.pm.para.panel.PMBatchBillTable"
+		init-method="initUI">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="nodekey" value="" />
+		<property name="templateContainer" ref="templateContainer" />
+		<property name="isBodyAutoAddLine" value="false" />
+		<property name="addLineAction" ref="addAction" />
+		<property name="delLineAction" ref="deleteAction" />
+	</bean>
+
+	<!-- nc.ui.am.base.manager.BatchSealModelDataManager -->
+	<bean id="modelDataManager" class="nc.ui.pmbd.bd.pressuregrade.model.BatchModelDataManager">
+		<property name="model" ref="batchBillTableModel"></property>
+		<property name="showSeal">
+			<value>false</value>
+		</property>
+
+	</bean>
+
+	<!-- 批量操作异常处理 -->
+	<bean id="execeptionHandler" class="nc.ui.uif2.DefaultExceptionHanler">
+		<property name="context" ref="context"></property>
+	</bean>
+
+	<!-- 节点关闭的监听 -->
+	<bean id="ClosingListener" class="nc.ui.uif2.FunNodeClosingHandler">
+		<property name="model">
+			<ref bean="batchBillTableModel" />
+		</property>
+		<property name="saveaction">
+			<ref bean="saveAction" />
+		</property>
+		<property name="cancelaction" ref="cancelAction" />
+	</bean>
+
+	<bean id="separatorAction" class="nc.funcnode.ui.action.SeparatorAction" />
+
+	<bean id="manageModeActionInterceptor" class="nc.ui.bd.pub.actions.ManageModeActionInterceptor">
+		<property name="model" ref="batchBillTableModel" />
+	</bean>
+
+	<!-- 新增按钮 -->
+	<bean id="addAction" class="nc.ui.pmbd.bd.pressuregrade.action.AddAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="voClassName" value="nc.vo.pmbd.bd.pressuregrade.PressuregradeVO"></property>
+		<property name="exceptionHandler" ref="execeptionHandler"></property>
+	</bean>
+
+	<!-- 修改按钮 -->
+	<bean id="editAction" class="nc.ui.pubapp.uif2app.actions.batch.BatchEditAction">
+		<property name="interceptor" ref="manageModeActionInterceptor" />
+		<property name="model" ref="batchBillTableModel" />
+	</bean>
+	<!-- 删除按钮 -->
+	<!--<bean id="deleteAction" class="nc.ui.pubapp.uif2app.actions.batch.BatchDelLineAction"> -->
+	<bean id="deleteAction" class="nc.ui.pm.action.PMBatchDelLineAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="batchBillTable" ref="list" />
+	</bean>
+	<!-- 保存按钮 -->
+	<bean id="saveAction" class="nc.ui.pubapp.uif2app.actions.batch.BatchSaveAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="editor" ref="list" />
+		<property name="validationService" ref="validationService" />
+	</bean>
+
+
+	<bean id="validationService" class="nc.impl.pm.common.DeleteEmptyLineService">
+		<property name="editor" ref="list"></property>
+	</bean>
+
+
+
+	<!-- 取消按钮 -->
+	<bean id="cancelAction" class="nc.ui.pubapp.uif2app.actions.batch.BatchCancelAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="editor" ref="list" />
+	</bean>
+	<!-- 刷新按钮 -->
+	<bean id="refreshAction" class="nc.ui.pm.action.PMBatchRefreshAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="modelManager" ref="modelDataManager" />
+	</bean>
+
+
+	<!-- 业务按钮 -->
+	<bean id="disEnableActionGroup" class="nc.funcnode.ui.action.GroupAction">
+		<property name="code" value="DisEnableGroup"></property>
+		<property name="actions">
+			<list>
+				<ref bean="enableAction" />
+				<ref bean="disEnableAction" />
+			</list>
+		</property>
+	</bean>
+	<bean id="disEnableAction" class="nc.ui.pmbd.bd.pressuregrade.action.DisEnableAction">
+		<property name="model" ref="batchBillTableModel" />
+	</bean>
+
+	<bean id="enableAction" class="nc.ui.pmbd.bd.pressuregrade.action.EnableAction">
+		<property name="model" ref="batchBillTableModel" />
+	</bean>
+
+	<!-- 过滤按钮 -->
+	<bean id="filterAction" class="nc.ui.pm.action.container.ShowDisEnableMenuAction">
+		<property name="actions">
+			<list>
+				<ref bean="showDisEnableAction" />
+			</list>
+		</property>
+	</bean>
+	<bean id="showDisEnableAction" class="nc.ui.uif2.actions.ShowDisableDataAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="dataManager" ref="modelDataManager" />
+	</bean>
+
+	<!-- 列表打印组 -->
+	<bean id="printMenuAction" class="nc.funcnode.ui.action.GroupAction">
+		<property name="actions">
+			<list>
+				<ref bean="listtemplatePrintAction" />
+				<ref bean="listtemplatePreviewAction" />
+				<ref bean="outputAction" />
+			</list>
+		</property>
+	</bean>
+	<!-- 列表预览 -->
+	<bean id="listtemplatePreviewAction" class="nc.ui.uif2.actions.TemplatePreviewAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="printDlgParentConatiner" ref="list" />
+		<property name="datasource" ref="datasource" />
+
+	</bean>
+
+	<bean id="datasource" class="nc.ui.bd.pub.actions.print.MetaDataAllDatasSource">
+		<property name="model" ref="batchBillTableModel"></property>
+	</bean>
+	<!-- 列表打印 -->
+	<bean id="listtemplatePrintAction" class="nc.ui.uif2.actions.TemplatePrintAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="printDlgParentConatiner" ref="list" />
+		<property name="datasource" ref="datasource" />
+
+	</bean>
+		<!-- 输出 -->
+	<bean id="outputAction" class="nc.ui.uif2.actions.OutputAction">
+		<property name="model" ref="batchBillTableModel" />
+		<property name="printDlgParentConatiner" ref="list" />
+		<property name="datasource" ref="datasource" />
+	</bean>
+	
+	<bean id="container" class="nc.ui.uif2.TangramContainer"
+		init-method="initUI">
+		<property name="tangramLayoutRoot">
+			<bean class="nc.ui.uif2.tangramlayout.node.VSNode">
+				<property name="down">
+					<bean class="nc.ui.uif2.tangramlayout.node.CNode">
+						<property name="component" ref="list" />
+					</bean>
+				</property>
+				<property name="up">
+					<bean class="nc.ui.uif2.tangramlayout.node.CNode">
+						<property name="component" ref="orgPanel" />
+					</bean>
+				</property>
+				<property name="dividerLocation" value="30"></property>
+			</bean>
+		</property>
+		<property name="actions">
+			<list>
+				<ref bean="addAction" />
+				<ref bean="editAction" />
+				<ref bean="deleteAction" />
+				<ref bean="separatorAction" />
+				<ref bean="refreshAction" />
+				<ref bean="filterAction" />
+				<ref bean="separatorAction" />
+				<ref bean="disEnableActionGroup" />
+				<ref bean="separatorAction" />
+				<ref bean="printMenuAction" />
+
+
+			</list>
+		</property>
+		<property name="editActions">
+			<list>
+				<ref bean="addAction" />
+				<ref bean="deleteAction" />
+				<ref bean="separatorAction" />
+				<ref bean="saveAction" />
+				<ref bean="separatorAction" />
+				<ref bean="cancelAction" />
+			</list>
+		</property>
+		<property name="model" ref="batchBillTableModel" />
+	</bean>
+</beans>
+
+

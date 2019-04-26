@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+    <import resource="classpath:nc/ui/pmpub/basedoc/treecard/view/treecard_action_config.xml" />
+    <import resource="classpath:nc/ui/pmpub/basedoc/treecard/view/treecard_frame_config.xml" />
+    <!-- 环境变量 -->
+	<bean id="context" class="nc.vo.uif2.LoginContext">
+	</bean>
+	<!--
+		模型部分配置###########################################################
+	-->
+
+	<!-- 应用服务类，负责进行模型操作的处理 -->
+	<bean id="service" class="nc.ui.pmbd.bd.pipelinepointclass.ace.serviceproxy.AcePipelinepointclassMaintainProxy">
+	<property name="context" ref="context" />
+	</bean>
+
+
+	<!-- 层次结构构造策略 -->
+	<bean id="treeCreateStrategy" class="nc.vo.bd.meta.BDObjectTreeCreateStrategy">
+		<property name="factory" ref="bdOjectAdapterFactory" />
+		<property name="rootName" value="管线点分类" />
+	</bean>
+	
+	<!-- 应用模型 -->
+	<bean id="appmodel" class="nc.ui.pm.model.HierachicalDataAppModel">
+		<property name="context">
+			<ref bean="context" />
+		</property>
+		<property name="treeCreateStrategy" ref="treeCreateStrategy"></property>
+		<property name="businessObjectAdapterFactory" ref="bdOjectAdapterFactory">
+		</property>
+		<property name="service" ref="service"></property>
+	</bean>	
+	
+	<!-- 数据模型管理器，主要负责各种方式的模型初始化 -->
+	<bean id="modelDataManager" class="nc.ui.pmbd.bd.pipelinepointclass.ace.serviceproxy.PipelinepointclassModelDataManager">
+		<property name="model" ref="appmodel"></property>
+		<property name="context" ref="context" />
+	</bean>
+	
+	
+
+	<!--修改-->
+	<bean id="editAction" class="nc.ui.pmbd.bd.pipelinepointclass.action.PipelinepointClassEditAction">
+		<property name="model" ref="appmodel" />
+		<property name="editor">
+			<ref bean="billForm" />
+		</property>
+		<property name="validationService" ref="manageModeCheckValidator" />
+	</bean>
+	
+	 <!--删除-->
+	<bean id="deleteAction" class="nc.ui.pmbd.bd.pipelinepointclass.action.PipelinepointClassDeleteAction">
+		<property name="service" ref="service"></property>
+		<property name="model">
+			<ref bean="appmodel" />
+		</property>
+		<property name="editor">
+			<ref bean="billForm" />
+		</property>
+		<property name="validationService" ref="manageModeCheckValidator" />
+	</bean>
+	
+		<!-- 界面布局总装########################################################### -->
+	<bean id="container" class="nc.ui.uif2.TangramContainer"
+		init-method="initUI">
+		<property name="tangramLayoutRoot">
+			<bean class="nc.ui.uif2.tangramlayout.node.VSNode">
+				<property name="down">
+					<bean class="nc.ui.uif2.tangramlayout.node.HSNode">
+						<property name="left">
+							<bean class="nc.ui.uif2.tangramlayout.node.CNode">
+								<property name="component" ref="treePanel"></property>
+							</bean>
+						</property>
+						<property name="right">
+							<bean class="nc.ui.uif2.tangramlayout.node.CNode">
+								<property name="component" ref="billForm"></property>
+							</bean>
+						</property>
+						<property name="dividerLocation">
+							<value>0.25f</value>
+						</property>
+					</bean>
+				</property>
+				<property name="up">
+					<bean class="nc.ui.uif2.tangramlayout.node.CNode">
+						<property name="component" ref="orgPanel" />
+					</bean>
+				</property>
+				<property name="dividerLocation" value="30"></property>
+			</bean>
+		</property>
+		<property name="actions">
+			<list>
+				<ref bean="addAction" />
+				<ref bean="editAction" />
+				<ref bean="deleteAction" />
+				<ref bean="separatorAction" />
+				<ref bean="refreshAllAction" />
+				<ref bean="filteraction" />
+				<ref bean="separatorAction" />
+				<ref bean="sealActionGroup" />
+				<ref bean="separatorAction" />
+				<ref bean="printActionGroup" />
+
+			</list>
+		</property>
+
+		<property name="editActions">
+			<list>
+				<ref bean="saveAction" />
+				<ref bean="saveAddAction" />
+				<ref bean="separatorAction" />
+				<ref bean="cancelAction" />
+			</list>
+		</property>
+		<property name="model" ref="appmodel" />
+	</bean>
+</beans>

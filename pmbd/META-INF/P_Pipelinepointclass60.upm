@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding='gb2312'?>
+<module name="pmbd">
+  <public>
+	<component remote="true" singleton="true"  tx="CMT">
+	  <interface>nc.itf.pmbd.IPipelinepointclassMaintain</interface>
+	  <implementation>nc.impl.pmbd.PipelinepointclassMaintainImpl</implementation>
+	</component>
+	<component remote="true" singleton="true"  tx="CMT">
+	  <interface>nc.itf.pmbd.pipelinepointclass.mob.IPipelinepointClassMobService</interface>
+	  <implementation>nc.impl.pmbd.pipelinepointclass.mob.PipelinepointClassMobServiceImpl</implementation>
+	</component>
+
+  </public> 
+</module> 
