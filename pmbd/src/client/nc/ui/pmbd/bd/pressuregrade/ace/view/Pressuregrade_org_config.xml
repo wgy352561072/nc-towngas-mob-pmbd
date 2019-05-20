@@ -187,6 +187,16 @@
 		<property name="datasource" ref="datasource" />
 	</bean>
 	
+		<!--======= 动作：[newActions] [查询] ===========-->
+	<bean id="qryAction" class="nc.ui.pmbd.bd.pressuregrade.action.PressureGradeQuaryAction">
+            <property name="model" ref="batchBillTableModel"></property>
+            <property name="dataManager" ref="modelDataManager"></property>
+            <property name="templateContainer" ref="queryTemplateContainer"></property>
+    </bean>
+    <bean id="queryTemplateContainer" class="nc.ui.uif2.editor.QueryTemplateContainer">
+            <property name="context" ref="context"></property>
+    </bean>
+	
 	<bean id="container" class="nc.ui.uif2.TangramContainer"
 		init-method="initUI">
 		<property name="tangramLayoutRoot">
@@ -210,6 +220,7 @@
 				<ref bean="editAction" />
 				<ref bean="deleteAction" />
 				<ref bean="separatorAction" />
+				<ref bean="qryAction" />				
 				<ref bean="refreshAction" />
 				<ref bean="filterAction" />
 				<ref bean="separatorAction" />

@@ -27,6 +27,7 @@
 				<ref bean="editAction" />
 				<ref bean="deleteAction" />
 				<ref bean="separatorAction" />
+				<ref bean="qryAction" />
 				<ref bean="refreshAction" />
 				<ref bean="filterAction" />
 				<ref bean="separatorAction" />
