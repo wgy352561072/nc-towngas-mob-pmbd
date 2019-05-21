@@ -7,15 +7,22 @@ import java.util.List;
 import nc.bs.bd.baseservice.ArrayClassConvertUtil;
 import nc.bs.bd.service.ValueObjWithErrLog;
 import nc.bs.dao.BaseDAO;
+import nc.bs.framework.common.NCLocator;
 import nc.bs.pm.utils.ReferUnChangeUtils;
 import nc.bs.pmpub.basedoc.PMMultiManageTypeBaseService;
 import nc.itf.pmbd.IPressuregradeMaintain;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.vo.bd.meta.BatchOperateVO;
 import nc.vo.pm.proxy.PMProxy;
 import nc.vo.pm.util.ArrayUtil;
+import nc.vo.pmbd.bd.pipelinepointclass.PipelinepointclassVO;
 import nc.vo.pmbd.bd.pressuregrade.PressuregradeVO;
+import nc.vo.pqm.pipelinepointdatas.PipelinepointdatasVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.SuperVO;
+import nc.vo.pubapp.pattern.exception.ExceptionUtils;
+import nc.vo.pubapp.pattern.pub.SqlBuilder;
 import nc.vo.uif2.LoginContext;
 import nc.vo.util.VisibleUtil;
 
@@ -150,6 +157,60 @@ public class PressuregradeMaintainImpl extends
 	@Override
 	public void delete(PressuregradeVO[] vos) throws BusinessException {
 		// TODO Auto-generated method stub
+		//是否被引用
+		 this.checkIsReference(vos);
 		 super.deleteVO(vos);
+	}
+
+	private void checkIsReference(PressuregradeVO[] vos) {
+		boolean isRef = false;
+		
+/*		isRef = RefrenceUtil.checkIsReference(
+				"pmbd_pipelinepointclass", vos,
+				new String[] { "pqm_pipelinepointdatas" });*/
+		
+		 isRef = checkPLPCIsReference(
+				"pmbd_pressuregrade", vos,"pk_pressuregrade",
+				"pqm_pipelinepointdatas");
+		
+		//被引用
+		if (isRef) {
+			ExceptionUtils.wrappBusinessException(nc.vo.ml.NCLangRes4VoTransl.getNCLangRes().getStrByID("acceptbase_0","04801001-0046")/*@res "下列数据由于被引用，不能删除，编码："*/+vos[0].getAttributeValue("code"));
+		}
+	}
+
+	/**
+	 * @param currenttable 当前表
+	 * @param vos 
+	 * @param checkfield 检查字段
+	 * @param checktable 检查表
+	 * @return
+	 */
+	private boolean checkPLPCIsReference(String currenttable, PressuregradeVO[] vos,
+			String checkfield, String checktable) {
+		boolean isReference = false;
+		if(vos == null || vos.length ==0){
+			return isReference;
+		}
+		IUAPQueryBS qry = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+		String[] values = new String[vos.length];
+		for(int i = 0; i < vos.length; i++){
+			values[i] = vos[i].getPk_pressuregrade();
+		}
+		
+		SqlBuilder sqlbuder = new SqlBuilder();
+		sqlbuder.append("select * from "+checktable+" where ");
+		sqlbuder.append(checkfield,values);
+		sqlbuder.append("and nvl(dr,0) = 0");
+		try {
+				ArrayList<PipelinepointdatasVO> slist = (ArrayList<PipelinepointdatasVO>) qry.executeQuery(sqlbuder.toString(), new BeanListProcessor(PipelinepointdatasVO.class));
+				if(slist != null && slist.size()> 0){
+					isReference = true;
+				}
+			} catch (BusinessException e) {
+				e.printStackTrace();
+			}
+
+		return isReference;
 	}
 }

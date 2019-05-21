@@ -89,7 +89,7 @@ public class PressureGradeRefModel extends AbstractRefModel {
 		// 添加“启用”条件
 		this.setAddEnableStateWherePart(true);
 
-		this.addWherePart(" and dr = 0");
+		this.addWherePart(" and nvl(dr,0) = 0");
 
 	}
 

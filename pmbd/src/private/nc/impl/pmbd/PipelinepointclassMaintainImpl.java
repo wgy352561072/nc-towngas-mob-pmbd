@@ -1,10 +1,12 @@
 package nc.impl.pmbd;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
 import nc.bs.bd.baseservice.validator.BDTreeUpdateLoopValidator;
 import nc.bs.dao.BaseDAO;
+import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
 import nc.bs.pmpub.basedoc.PMBDRefCheck4MuiltFileds;
 import nc.bs.pmpub.basedoc.PMCodeTreeBaseService;
@@ -12,6 +14,8 @@ import nc.bs.pmpub.util.RefrenceUtil;
 import nc.bs.uif2.validation.Validator;
 import nc.impl.pubapp.pattern.data.vo.VOQuery;
 import nc.itf.pmbd.IPipelinepointclassMaintain;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.md.MDBaseQueryFacade;
 import nc.md.data.access.NCObject;
 import nc.md.model.IBusinessEntity;
@@ -20,10 +24,12 @@ import nc.vo.bd.meta.IBDObject;
 import nc.vo.bd.pub.IPubEnumConst;
 import nc.vo.pmbd.bd.pipelinepointclass.PipelinepointclassVO;
 import nc.vo.pmbd.bd.pipelinepointclass.util.PipelinepointClassRefrenceUtil;
+import nc.vo.pqm.pipelinepointdatas.PipelinepointdatasVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.BusinessRuntimeException;
 import nc.vo.pub.SuperVO;
 import nc.vo.pubapp.pattern.exception.ExceptionUtils;
+import nc.vo.pubapp.pattern.pub.SqlBuilder;
 import nc.vo.uif2.LoginContext;
 import nc.vo.util.BDUniqueRuleValidate;
 import nc.vo.util.SuperVOTreeStructrueValidator;
@@ -119,9 +125,13 @@ public class PipelinepointclassMaintainImpl extends PMCodeTreeBaseService<Pipeli
 		PipelinepointclassVO[] vos = new PipelinepointclassVO[1];
 		vos[0] = vo;
 		
-		isRef = RefrenceUtil.checkIsReference(
+/*		isRef = RefrenceUtil.checkIsReference(
 				"pmbd_pipelinepointclass", vos,
-				new String[] { "pqm_pipelinepointdatas" });
+				new String[] { "pqm_pipelinepointdatas" });*/
+		
+		 isRef = checkPLPCIsReference(
+				"pmbd_pipelinepointclass", vos,"pk_pipelinepointclass",
+				"pqm_pipelinepointdatas");
 		
 		//被引用
 		if (isRef) {
@@ -129,6 +139,40 @@ public class PipelinepointclassMaintainImpl extends PMCodeTreeBaseService<Pipeli
 		}
 	}
 	
+	/**
+	 * @param currenttable 当前表
+	 * @param vos 
+	 * @param checkfield 检查字段
+	 * @param checktable 检查表
+	 * @return
+	 */
+	private boolean checkPLPCIsReference(String currenttable, PipelinepointclassVO[] vos,
+			String checkfield, String checktable) {
+		boolean isReference = false;
+		if(vos == null || vos.length ==0){
+			return isReference;
+		}
+		IUAPQueryBS qry = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+		String[] values = new String[vos.length];
+		for(int i = 0; i < vos.length; i++){
+			values[i] = vos[i].getPk_pipelinepointclass();
+		}
+		
+		SqlBuilder sqlbuder = new SqlBuilder();
+		sqlbuder.append("select * from "+checktable+" where ");
+		sqlbuder.append(checkfield,values);
+		sqlbuder.append("and nvl(dr,0) = 0");
+		try {
+				ArrayList<PipelinepointdatasVO> slist = (ArrayList<PipelinepointdatasVO>) qry.executeQuery(sqlbuder.toString(), new BeanListProcessor(PipelinepointdatasVO.class));
+				if(slist != null && slist.size()> 0){
+					isReference = true;
+				}
+			} catch (BusinessException e) {
+				e.printStackTrace();
+			}
+
+		return isReference;
+	}
 	/**
 	 * 查询时候有子节点,并判断子节点是否被引用
 	 */
@@ -146,10 +190,16 @@ public class PipelinepointclassMaintainImpl extends PMCodeTreeBaseService<Pipeli
 		PipelinepointclassVO[] vos = query.query(condition.toString(), null);
 
 		boolean isRef = false;
-		// 判断子孙节点是否被引用
-		isRef = RefrenceUtil.checkIsReference(
-				"pmbd_pipelinepointclass", vos,
-				new String[] { "pqm_pipelinepointdatas" });
+//		// 判断子孙节点是否被引用
+//		isRef = RefrenceUtil.checkIsReference(
+//				"pmbd_pipelinepointclass", vos,
+//				new String[] { "pqm_pipelinepointdatas" });
+		
+		 isRef = checkPLPCIsReference(
+					"pmbd_pipelinepointclass", vos,"pk_pipelinepointclass",
+					"pqm_pipelinepointdatas");
+		
+		
 		if (isRef) {
 			ExceptionUtils
 					.wrappBusinessException(nc.vo.ml.NCLangRes4VoTransl
