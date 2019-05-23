@@ -22,7 +22,6 @@ import nc.uif.pub.exception.UifException;
 import nc.vo.bd.pub.NODE_TYPE;
 import nc.vo.pmbd.bd.pipelinepointclass.PipelinepointclassVO;
 import nc.vo.pmpub.common.PMCommonKeyConst;
-import nc.vo.pqm.pipelinepointdatas.PipelinepointdatasVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.SuperVO;
 import nc.vo.pubapp.pattern.pub.SqlBuilder;
